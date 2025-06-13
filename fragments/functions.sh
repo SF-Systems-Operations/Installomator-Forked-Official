@@ -343,6 +343,9 @@ checkRunningProcesses() {
                       sleep 5
                       ;;
                     prompt_user|prompt_user_then_kill)
+                      caffeinate -dimsu -t $PROMPT_TIMEOUT & caffeinatePID=$!
+                      trap 'kill $caffeinatePID 2>/dev/null' EXIT
+                      printlog "Started caffeinate (PID $caffeinatePID) to prevent sleep during user prompt"
                       button=$(displaydialog "Quit “$x” to continue updating? $([[ -n $appNewVersion ]] && echo "Version $appversion is installed, but version $appNewVersion is available.") (Leave this dialogue if you want to activate this update later)." "The application “$x” needs to be updated.")
                       if [[ $button = "Not Now" ]]; then
                         appClosed=0
@@ -370,6 +373,9 @@ checkRunningProcesses() {
                       fi
                       ;;
                     prompt_user_loop)
+                      caffeinate -dimsu -t $PROMPT_TIMEOUT & caffeinatePID=$!
+                      trap 'kill $caffeinatePID 2>/dev/null' EXIT
+                      printlog "Started caffeinate (PID $caffeinatePID) to prevent sleep during user prompt"  
                       button=$(displaydialog "Quit “$x” to continue updating? $([[ -n $appNewVersion ]] && echo "Version $appversion is installed, but version $appNewVersion is available.") (Click “Not Now” to be asked in 1 hour, or leave this open until you are ready)." "The application “$x” needs to be updated.")
                       if [[ $button = "Not Now" ]]; then
                         if [[ $i < 2 ]]; then
@@ -388,6 +394,9 @@ checkRunningProcesses() {
                       fi
                       ;;
                     tell_user|tell_user_then_kill)
+                      caffeinate -dimsu -t $PROMPT_TIMEOUT & caffeinatePID=$!
+                      trap 'kill $caffeinatePID 2>/dev/null' EXIT
+                      printlog "Started caffeinate (PID $caffeinatePID) to prevent sleep during user prompt"
                       button=$(displaydialogContinue "Quit “$x” to continue updating? (This is an important update). Wait for notification of update before launching app again." "The application “$x” needs to be updated.")
                       printlog "telling app $x to quit"
                       runAsUser osascript -e "tell app \"$x\" to quit"
