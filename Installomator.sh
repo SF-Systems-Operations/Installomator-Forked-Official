@@ -696,9 +696,24 @@ checkRunningProcesses() {
                       sleep 5
                       ;;
                     prompt_user|prompt_user_then_kill)
-                      caffeinate -i -t $PROMPT_TIMEOUT & caffeinatePID=$!
-                      trap 'printlog "Caffeinate exiting (PID $caffeinatePID). Cleaning up."; kill $caffeinatePID 2>/dev/null' EXIT                      
-                      printlog "Started caffeinate (PID $caffeinatePID) to prevent sleep during user prompt"
+                    # Start caffeinate in the background for as long as the prompt lasts
+                    caffeinate -i -t "$PROMPT_TIMEOUT" & caffeinatePID=$!
+                    printlog "Started caffeinate (PID=$caffeinatePID for $PROMPT_TIMEOUT seconds) to prevent sleep during user prompt" INFO
+                    # Cleanly kill caffeinate when script exits
+                    trap 'kill "$caffeinatePID" 2>/dev/null' EXIT
+
+                    # Subshell logs how caffeinate exited (timeout or killed)
+                        (
+                            wait "$caffeinatePID"
+                            exitCode=$?
+                            if [[ $exitCode -eq 0 ]]; then
+                                printlog "Caffeinate (PID $caffeinatePID) exited after timeout" INFO
+                            else
+                                printlog "Caffeinate (PID $caffeinatePID) was killed via trap or exited early (exit code $exitCode)" INFO
+                            fi
+                        ) &
+                     ##end Subshell
+
                       button=$(displaydialog "Quit “$x” to continue updating? $([[ -n $appNewVersion ]] && echo "Version $appversion is installed, but version $appNewVersion is available.") (Leave this dialogue if you want to activate this update later)." "The application “$x” needs to be updated.")
                       if [[ $button = "Not Now" ]]; then
                         appClosed=0
@@ -744,9 +759,24 @@ checkRunningProcesses() {
                       fi
                       ;;
                     tell_user|tell_user_then_kill)
-                      caffeinate -i -t $PROMPT_TIMEOUT & caffeinatePID=$!
-                      trap 'printlog "Caffeinate exiting (PID $caffeinatePID). Cleaning up."; kill $caffeinatePID 2>/dev/null' EXIT
-                      printlog "Started caffeinate (PID $caffeinatePID) to prevent sleep during user prompt"
+                    #Start caffeinate in the background for as long as the prompt lasts
+                      caffeinate -i -t "$PROMPT_TIMEOUT" & caffeinatePID=$!
+                      printlog "Started caffeinate (PID=$caffeinatePID for $PROMPT_TIMEOUT seconds) to prevent sleep during user prompt" INFO
+                    # Cleanly kill caffeinate when script exits
+                      trap 'kill "$caffeinatePID" 2>/dev/null' EXIT
+
+                    # Subshell logs how caffeinate exited (timeout or killed)
+                        (
+                            wait "$caffeinatePID"
+                            exitCode=$?
+                            if [[ $exitCode -eq 0 ]]; then
+                                printlog "Caffeinate (PID $caffeinatePID) exited after timeout" INFO
+                            else
+                                printlog "Caffeinate (PID $caffeinatePID) was killed via trap or exited early (exit code $exitCode)" INFO
+                            fi
+                        ) &
+                     ##end subshell
+
                       button=$(displaydialogContinue "Quit “$x” to continue updating? (This is an important update). Wait for notification of update before launching app again." "The application “$x” needs to be updated.")
                       printlog "telling app $x to quit"
                       runAsUser osascript -e "tell app \"$x\" to quit"
