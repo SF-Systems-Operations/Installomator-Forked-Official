@@ -349,7 +349,7 @@ if [[ $(/usr/bin/arch) == "arm64" ]]; then
     fi
 fi
 VERSION="10.9beta"
-VERSIONDATE="2025-06-13"
+VERSIONDATE="2025-06-30"
 
 # MARK: Functions
 
@@ -3891,6 +3891,21 @@ drift)
     type="dmg"
     downloadURL="https://drift-prod-desktop-installers.s3.amazonaws.com/mac/Drift-latest.dmg"
     expectedTeamID="78559WUUR9"
+    ;;
+dropbox_ent)
+    name="Dropbox"
+    type="pkg"
+    # Handling differens on Apple Silicon and Intel arch
+    if [[ $(arch) = "arm64" ]]; then
+        printlog "Architecture: arm64"
+        downloadURL="https://client.dropbox.com/desktop/desktop-dropbox/requestdownload?install_type=enterprise_install&platform=mac&arch=arm64"
+        
+    else
+        printlog "Architecture: i386 (not arm64)"
+        downloadURL="https://client.dropbox.com/desktop/desktop-dropbox/requestdownload?install_type=enterprise_install&platform=mac&arch=x86_64"
+    fi
+    appNewVersion=$(curl -fsIL "$downloadURL" | grep -i "^location" | sed -E 's/.*%20([0-9.]*)\.[arm64.]*dmg/\1/g' | tr -d '[:cntrl:]' )
+    expectedTeamID="G7HH3F8CAK"
     ;;
 dropbox)
     name="Dropbox"

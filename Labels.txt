@@ -254,6 +254,7 @@ dragonframe5
 drawio
 drift
 dropbox
+dropbox_ent
 droplr
 druvainsync
 dstny
